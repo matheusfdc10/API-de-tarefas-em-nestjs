@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:3000
+
+@token = {{authenticate.response.body.accessToken}}
+
+@expirationDate = {{$datetime iso8601}}
+
+### UserController
+# findAll
+GET {{baseUrl}}/users
+
+### UserController
+# create
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+    "userName": "test",
+    "password": "12345678"
+}
+
+
+
+### AuthController
+# SignIn
+# @name authenticate
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "userName": "admin",
+    "password": "12345678"
+}
+
+
+
+
+### TaskController
+# create
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Task4",
+    "description": "This is a task 4",
+    "expirationDate": "{{expirationDate}}"
+}
+
+### TaskController
+# findAll
+GET {{baseUrl}}/tasks?limit=10&offset=0
+Authorization: Bearer {{token}}
+
+### TaskController
+# find
+GET {{baseUrl}}/tasks/ff373436-b67e-4df5-b403-941725c77718
+Authorization: Bearer {{token}}
+
+### TaskController
+# update
+PUT {{baseUrl}}/tasks/ff373436-b67e-4df5-b403-941725c77718
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Task5",
+    "description": "This is a task 5",
+    "status": "IN_PROGRESS"
+}
+
+### TaskController
+# remove
+DELETE {{baseUrl}}/tasks/c9aade32-34c4-4f5d-b594-7e95a0367554
+Authorization: Bearer {{token}}
