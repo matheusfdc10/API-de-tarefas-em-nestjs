@@ -1,5 +1,5 @@
 import {
-  IsDateString,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { TaskStatusEnum } from '../enum/task-status.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -53,7 +54,8 @@ export class CreateTaskDto {
     required: true,
     type: Date,
   })
-  @IsDateString()
+  @IsDate()
+  @Type(() => Date) // Transforma a string recebida em uma instância de Date
   @IsNotEmpty()
   expirationDate: Date;
 }

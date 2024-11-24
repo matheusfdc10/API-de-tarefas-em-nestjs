@@ -26,12 +26,19 @@ export class AuthService {
 
     const foundUser = await this.userService.findByUserName(userName);
 
+    if (!foundUser) {
+      throw new HttpException(
+        'UserName or Password invalid',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const passwordIsValid = await this.hashingService.compare(
       password,
-      foundUser.passwordHash,
+      foundUser?.passwordHash,
     );
 
-    if (!foundUser || !passwordIsValid) {
+    if (!passwordIsValid) {
       throw new HttpException(
         'UserName or Password invalid',
         HttpStatus.FORBIDDEN,

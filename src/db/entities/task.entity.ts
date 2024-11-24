@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
+import { TaskStatusEnum } from 'src/task/enum/task-status.enum';
 
 @Entity({ name: 'task' })
 export class TaskEntity {
@@ -20,7 +21,7 @@ export class TaskEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'enum', enum: TaskStatusEnum })
   status: string;
 
   @Column({ type: 'timestamptz', name: 'expiration_date' })

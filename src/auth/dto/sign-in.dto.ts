@@ -11,7 +11,7 @@ export class SignInDto {
   @IsString()
   @IsNotEmpty()
   @NoSpaces()
-  readonly userName: string;
+  userName: string;
 
   @ApiProperty({
     example: 'password123',
@@ -23,5 +23,5 @@ export class SignInDto {
   @IsString()
   @IsNotEmpty()
   @NoSpaces()
-  readonly password: string;
+  password: string;
 }

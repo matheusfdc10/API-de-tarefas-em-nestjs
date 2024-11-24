@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskEntity } from 'src/db/entities/task.entity';
-import { FindOptionsWhere, Like, Raw, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FilterTasksByParametersDto } from './dto/filter-tasks-by-parameters.dto';
@@ -38,13 +38,14 @@ export class TaskService {
     };
 
     if (params.title) {
-      searshParams.title = Raw((alias) => `LOWER(${alias}) LIKE :title`, {
-        title: `%${params.title.toLowerCase()}%`,
-      });
+      searshParams.title = ILike(`%${params.title}%`);
+      // searshParams.title = Raw((alias) => `LOWER(${alias}) LIKE :title`, {
+      //   title: `%${params.title.toLowerCase()}%`,
+      // });
     }
 
     if (params.status) {
-      searshParams.status = Like(`%${params.status}%`);
+      searshParams.status = ILike(`%${params.status}%`);
     }
 
     const tasks = await this.tasksRepository.find({
@@ -123,7 +124,7 @@ export class TaskService {
       title: taksDto.title,
       description: taksDto.description,
       expirationDate: taksDto.expirationDate,
-      status: TaskStatusEnum[taksDto.status.toString()],
+      status: TaskStatusEnum[taksDto.status],
     };
   }
 }
