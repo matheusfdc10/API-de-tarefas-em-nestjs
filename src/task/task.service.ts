@@ -20,7 +20,7 @@ export class TaskService {
       title: newTask.title,
       description: newTask.description,
       expirationDate: newTask.expirationDate,
-      status: TaskStatusEnum.TO_DO,
+      status: newTask?.status,
       userId: userId,
     };
 
@@ -45,7 +45,7 @@ export class TaskService {
     }
 
     if (params.status) {
-      searshParams.status = ILike(`%${params.status}%`);
+      searshParams.status = TaskStatusEnum[params.status];
     }
 
     const tasks = await this.tasksRepository.find({

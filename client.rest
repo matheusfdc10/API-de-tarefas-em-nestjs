@@ -48,7 +48,7 @@ Content-Type: application/json
 
 ### TaskController
 # findAll
-GET {{baseUrl}}/tasks?limit=10&offset=0
+GET {{baseUrl}}/tasks?limit=10&offset=0&title=task&status=TO_DO
 Authorization: Bearer {{token}}
 
 ### TaskController

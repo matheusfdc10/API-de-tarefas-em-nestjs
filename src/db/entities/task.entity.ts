@@ -21,7 +21,7 @@ export class TaskEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: 'enum', enum: TaskStatusEnum })
+  @Column({ type: 'enum', enum: TaskStatusEnum, default: TaskStatusEnum.TO_DO })
   status: string;
 
   @Column({ type: 'timestamptz', name: 'expiration_date' })

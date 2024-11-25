@@ -43,9 +43,9 @@ export class UsersService {
     return userFound;
   }
 
-  async findAll(): Promise<UserEntity[]> {
-    const users = await this.usersRepository.find();
+  // async findAll(): Promise<UserEntity[]> {
+  //   const users = await this.usersRepository.find();
 
-    return users;
-  }
+  //   return users;
+  // }
 }

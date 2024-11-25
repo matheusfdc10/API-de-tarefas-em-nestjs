@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { SignInDto } from 'src/auth/dto/sign-in.dto';
 import { DbModule } from 'src/db/db.module';
 import { CreateTaskDto } from 'src/task/dto/create-task.dto';
+import { FilterTasksByParametersDto } from 'src/task/dto/filter-tasks-by-parameters.dto';
 import { TaskStatusEnum } from 'src/task/enum/task-status.enum';
 import { TaskModule } from 'src/task/task.module';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -273,8 +274,273 @@ describe('AppConrtoller (e2e)', () => {
         );
         expect(response.body.message).toEqual('Unauthorized');
       });
+      it('should throw an error if the title is not a string', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { title: 123 as any },
+        );
+
+        expect(response.body.message).toContain('title must be a string');
+      });
+      it('should throw an error if the title is less than 3 characters', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { title: 'aa' },
+        );
+
+        expect(response.body.message).toContain(
+          'title must be longer than or equal to 3 characters',
+        );
+      });
+      it('should generate a long title error', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { title: 'a'.repeat(257) },
+        );
+
+        expect(response.body.message).toContain(
+          'title must be shorter than or equal to 256 characters',
+        );
+      });
+      it('should generate an undefined title error', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const createTaskDto = new CreateTaskDto();
+        createTaskDto.description = 'task description';
+        createTaskDto.expirationDate = new Date();
+        createTaskDto.status = TaskStatusEnum.TO_DO;
+
+        const response = await request(app.getHttpServer())
+          .post('/tasks')
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .send(createTaskDto)
+          .expect(HttpStatus.BAD_REQUEST);
+
+        expect(response.body.message).toContain('title should not be empty');
+      });
+      it('should throw an error if the description is not a string', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { description: 123 as any },
+        );
+
+        expect(response.body.message).toContain('description must be a string');
+      });
+      it('should throw an error if the description is less than 3 characters', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { description: 'aaaa' },
+        );
+
+        expect(response.body.message).toContain(
+          'description must be longer than or equal to 5 characters',
+        );
+      });
+      it('should generate a long description error', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { description: 'a'.repeat(513) },
+        );
+
+        expect(response.body.message).toContain(
+          'description must be shorter than or equal to 512 characters',
+        );
+      });
+      it('should generate an undefined description error', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const createTaskDto = new CreateTaskDto();
+        createTaskDto.title = 'task title';
+        createTaskDto.expirationDate = new Date();
+        createTaskDto.status = TaskStatusEnum.TO_DO;
+
+        const response = await request(app.getHttpServer())
+          .post('/tasks')
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .send(createTaskDto)
+          .expect(HttpStatus.BAD_REQUEST);
+
+        expect(response.body.message).toContain(
+          'description should not be empty',
+        );
+      });
+      it(`should throw an error if status is not enum (${TaskStatusEnum.TO_DO}, ${TaskStatusEnum.IN_PROGRESS}, ${TaskStatusEnum.DONE})`, async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { status: 'test' },
+        );
+
+        expect(response.body.message).toContain(
+          'status must be one of the following values: TO_DO, IN_PROGRESS, DONE',
+        );
+      });
+      it('must pass if status is undefined', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const createTaskDto = new CreateTaskDto();
+        createTaskDto.title = 'task title';
+        createTaskDto.description = 'task description';
+        createTaskDto.expirationDate = new Date();
+
+        const response = await request(app.getHttpServer())
+          .post('/tasks')
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .send(createTaskDto)
+          .expect(HttpStatus.CREATED);
+
+        expect(response.body.message).toBeUndefined();
+      });
+      it('should fail if expirationDate is not a date', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.BAD_REQUEST,
+          loginUser.body.accessToken,
+          { expirationDate: 'invalid-date' as any },
+        );
+
+        expect(response.body.message).toContain(
+          'expirationDate must be a Date instance',
+        );
+      });
+      it('should generate an undefined expirationDate error', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const createTaskDto = new CreateTaskDto();
+        createTaskDto.title = 'task title';
+        createTaskDto.description = 'task description';
+        createTaskDto.status = TaskStatusEnum.TO_DO;
+
+        const response = await request(app.getHttpServer())
+          .post('/tasks')
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .send(createTaskDto)
+          .expect(HttpStatus.BAD_REQUEST);
+
+        expect(response.body.message).toContain(
+          'expirationDate should not be empty',
+        );
+      });
+      it('must pass with expirationDate in string format', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        const response = await createTask(
+          app,
+          HttpStatus.CREATED,
+          loginUser.body.accessToken,
+          { expirationDate: `${new Date()}` as any },
+        );
+
+        expect(response.body.message).toBeUndefined();
+      });
+    });
+    describe('/ (GET)', () => {
+      it('must return unauthorized if do not send Authorization', async () => {
+        const params: FilterTasksByParametersDto = {
+          limit: 10,
+          offset: 0,
+          status: TaskStatusEnum.TO_DO,
+          title: 'test',
+        };
+
+        const response = await request(app.getHttpServer())
+          .get('/tasks')
+          .query(params)
+          .expect(HttpStatus.UNAUTHORIZED);
+        expect(response.body.message).toEqual('Unauthorized');
+      });
+      it('must return unauthorized if submit an invalid or expired authorization', async () => {
+        const params: FilterTasksByParametersDto = {
+          limit: 10,
+          offset: 0,
+          status: TaskStatusEnum.TO_DO,
+          title: 'test',
+        };
+
+        const response = await request(app.getHttpServer())
+          .get('/tasks')
+          .query(params)
+          .set('Authorization', `Bearer token-invalid`)
+          .expect(HttpStatus.UNAUTHORIZED);
+        expect(response.body.message).toEqual('Unauthorized');
+      });
+      it('should return all user tasks', async () => {
+        await createUser(app, HttpStatus.CREATED, { userName: 'teste123' });
+        const loginUserTest = await login(app, HttpStatus.OK, {
+          userName: 'teste123',
+        });
+        await createTask(
+          app,
+          HttpStatus.CREATED,
+          loginUserTest.body.accessToken,
+        );
+
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        await createTask(app, HttpStatus.CREATED, loginUser.body.accessToken);
+        const params: FilterTasksByParametersDto = {};
+        const response = await request(app.getHttpServer())
+          .get('/tasks')
+          .query(params)
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .expect(HttpStatus.OK);
+        expect(response.body).toHaveLength(1);
+      });
+      it('must return all user tasks using parameters', async () => {
+        await createUser(app, HttpStatus.CREATED);
+        const loginUser = await login(app, HttpStatus.OK);
+        await createTask(app, HttpStatus.CREATED, loginUser.body.accessToken);
+        await createTask(app, HttpStatus.CREATED, loginUser.body.accessToken);
+        await createTask(app, HttpStatus.CREATED, loginUser.body.accessToken, {
+          status: TaskStatusEnum.IN_PROGRESS,
+        });
+        const params = new FilterTasksByParametersDto();
+        params.limit = 10;
+        params.offset = 0;
+        params.status = TaskStatusEnum.TO_DO;
+        params.title = 'Task Test';
+
+        const response = await request(app.getHttpServer())
+          .get('/tasks')
+          .query(params)
+          .set('Authorization', `Bearer ${loginUser.body.accessToken}`)
+          .expect(HttpStatus.OK);
+        expect(response.body).toHaveLength(2);
+      });
       // more tests...
     });
+    describe('/:id (GET)', () => {});
+    describe('/:id (PUT)', () => {});
+    describe('/:id (DELETE)', () => {});
   });
 });
 
@@ -321,7 +587,7 @@ const createTask = async (
   createTaskDto.title = task?.title || 'task test';
   createTaskDto.description = task?.description || 'task description';
   createTaskDto.expirationDate = task?.expirationDate || new Date();
-  createTaskDto.status = TaskStatusEnum?.[task?.status] || TaskStatusEnum.TO_DO;
+  createTaskDto.status = task?.status;
 
   return await request(app.getHttpServer())
     .post('/tasks')

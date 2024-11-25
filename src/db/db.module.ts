@@ -23,7 +23,7 @@ import * as fs from 'fs';
         migrations: [__dirname + '/migrations/*.ts'],
         autoLoadEntities: true,
         synchronize: true, // production false
-        // dropSchema: true, // apaga banco todo
+        dropSchema: true, // apaga banco todo
       }),
       inject: [ConfigService],
     }),
